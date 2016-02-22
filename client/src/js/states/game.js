@@ -408,7 +408,7 @@ module.exports = (function() {
         var runSpeed = 250;
         var score = Math.round((0-pathLength / 64)*100)/100;
 
-        runSpeed += score/2;
+        runSpeed += score/4;
 
         this.lastTime = this.lastTime || this.game.time.now;
 
@@ -556,6 +556,8 @@ module.exports = (function() {
     function updateRunnerSpeedTo(speed) {
         speed = speed < 850 ? speed : 850;
 
+        var targetArrays = [ obstacles, monsters, nonCollisionGroup];
+
         platforms.forEach(function(ground) {
             if(ground.worldPosition.x < -100) {
                 pathLength += ground.worldPosition.x;
@@ -565,6 +567,16 @@ module.exports = (function() {
             }
         }, this);
 
+        targetArrays.forEach(function(arr) {
+            arr.forEach(function(o) {
+                if(o.worldPosition.x < -100) {
+                    platforms.remove(o, true);
+                } else {
+                    o.body.velocity.x = -speed;
+                }
+            }, this);
+        }, this);
+/*
         obstacles.forEach(function(obstacle) {
             if(obstacle.worldPosition.x < -100) {
                 platforms.remove(obstacle, true);
@@ -588,6 +600,7 @@ module.exports = (function() {
                 o.body.velocity.x = -speed;
             }
         }, this);
+*/
     }
 
     function killPlayer() {
