@@ -30,7 +30,7 @@ module.exports = (function() {
     var numJumps = 0;
     var gameOverLabel;
     var deathEmitter, jumpEmitter;
-    var scoreText, repoText;
+    var scoreText, repoText, currentRepoText;
     var cursors, spacebar;
     var music, jump, drop, drop_end, soundsEnabled = true;
     var sndClick, sndDie, sndDown, sndKillMonster;
@@ -49,7 +49,11 @@ module.exports = (function() {
     var next_position = {};
     var empty_gaps = [];
 
+    // enable/disable collisions - great for testing a long a run
     var COLLIDE_ENABLED = true;
+    // if this is set to true, levels will be reduced to 50 tiles - used to test level changing features
+    // do not expect levels to accurately represent monsters, obstacles etc when this is on.
+    var MAKE_SHORT_LEVELS = false;
 
     o.preload = function() {
         console.log('Selected Character: ' + settings.selectedCharacter);
@@ -112,6 +116,7 @@ module.exports = (function() {
         grayFilter = this.game.add.filter('Gray');
 
         level = this.game.cache.getJSON('level');
+        if ( MAKE_SHORT_LEVELS ) level.size = 50;
         levels[currentLevelIndex] = level;
         level = levels[currentLevelIndex];
         isLoadingLevel = false;
@@ -178,6 +183,7 @@ module.exports = (function() {
             boundsAlignV: 'top'
         });
         scoreText.setTextBounds(10, 10, 150, 0);
+        currentRepoText = this.game.add.text(10, 48, '', {font: 'normal 16pt arial'});
 
         repoText = this.game.add.text(this.game.world.centerX, this.game.world.centerY - 125, 'Visited Repositories', {font: 'bold 24pt arial'});
         repoText.anchor.set(0.5, 0);
@@ -225,6 +231,7 @@ module.exports = (function() {
     }
 
     o.createAvatar = function(startPos) {
+        console.log('Creating signpost at ' + startPos);
         var signpost = nonCollisionGroup.create(startPos + 64, this.game.world.height-64, 'signpost');
         signpost.anchor.set(0, 1);
         var avatar = nonCollisionGroup.create(signpost.x + 18, 245, 'repo-avatar' + currentLevelIndex);
@@ -433,13 +440,14 @@ module.exports = (function() {
 
         // check if we've changed repos
         for ( var s = 0, len = nextSignposts.length; s < len; s++ ) {
-            if ( nextSignposts[s].x < player.x ) {
+            if ( nextSignposts[s].x + nextSignposts[s].width/2 < player.x ) {
                 currentRepoIndex = s;
             } else {
                 break;
             }
         }
-        console.log('Current Repo Index = ' + currentRepoIndex);
+        currentRepoText.text = 'Repo: ' + levels[currentRepoIndex].owner + '/' + levels[currentRepoIndex].repository;
+        //console.log('Current Repo Index = ' + currentRepoIndex);
 
         // now check collissions
         if ( COLLIDE_ENABLED ) {
@@ -502,6 +510,7 @@ module.exports = (function() {
         });
 
         rest.get('/game/next/' + gameID + '/' + settings.playerID, function(error, data) {
+            if ( MAKE_SHORT_LEVELS ) data.size = 50;
             levels[currentLevelIndex+1] = data;
 
             var imgData = new Image();
