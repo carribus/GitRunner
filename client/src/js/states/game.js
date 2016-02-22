@@ -25,6 +25,7 @@ module.exports = (function() {
     var currentLevelIndex = 0;
     var previousLevelLength = 0;
     var isLoadingLevel = false;
+    var nextSignposts, currentRepoIndex;
 
     var numJumps = 0;
     var gameOverLabel;
@@ -93,6 +94,7 @@ module.exports = (function() {
         empty_gaps = [];
         reposVisitedGUI = [];
         soundsEnabled = true;
+        pathLength = 0;
 
         cursors = this.game.input.keyboard.createCursorKeys();
         cursors.spacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -113,6 +115,8 @@ module.exports = (function() {
         levels[currentLevelIndex] = level;
         level = levels[currentLevelIndex];
         isLoadingLevel = false;
+        nextSignposts = [];
+        currentRepoIndex = 0;
 
         var imgData = new Image();
         imgData.src = level.avatar;
@@ -226,6 +230,8 @@ module.exports = (function() {
         var avatar = nonCollisionGroup.create(signpost.x + 18, 245, 'repo-avatar' + currentLevelIndex);
         avatar.width = 200;
         avatar.height = 165;
+
+        nextSignposts.push(signpost);
     };
 
     function backToMainMenu() {
@@ -393,8 +399,9 @@ module.exports = (function() {
     o.run = function() {
         var isJumping = !player.body.touching.down;
         var runSpeed = 250;
+        var score = Math.round((0-pathLength / 64)*100)/100;
 
-        runSpeed += Math.abs(platforms.getChildAt(0).x) / 64;
+        runSpeed += score/2;
 
         this.lastTime = this.lastTime || this.game.time.now;
 
@@ -424,6 +431,17 @@ module.exports = (function() {
 
         updateRunnerSpeedTo(runSpeed);
 
+        // check if we've changed repos
+        for ( var s = 0, len = nextSignposts.length; s < len; s++ ) {
+            if ( nextSignposts[s].x < player.x ) {
+                currentRepoIndex = s;
+            } else {
+                break;
+            }
+        }
+        console.log('Current Repo Index = ' + currentRepoIndex);
+
+        // now check collissions
         if ( COLLIDE_ENABLED ) {
             if ( (player.body.bottom >= settings.display.height || player.body.touching.right) ) {
                 // kill the player and end the game
@@ -440,7 +458,6 @@ module.exports = (function() {
             }
         }
 
-        var score = Math.round((0-pathLength / 64)*100)/100;
         scoreText.setText(returnCurrentScore(score));
 
         if (cursors.up.isDown || cursors.spacebar.isDown) {
@@ -528,7 +545,7 @@ module.exports = (function() {
     }
 
     function updateRunnerSpeedTo(speed) {
-        speed = speed < 750 ? speed : 750;
+        speed = speed < 850 ? speed : 850;
 
         platforms.forEach(function(ground) {
             if(ground.worldPosition.x < -100) {
