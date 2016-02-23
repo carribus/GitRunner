@@ -570,7 +570,7 @@ module.exports = (function() {
         targetArrays.forEach(function(arr) {
             arr.forEach(function(o) {
                 if(o.worldPosition.x < -100) {
-                    platforms.remove(o, true);
+                    arr.remove(o, true);
                 } else {
                     o.body.velocity.x = -speed;
                 }
