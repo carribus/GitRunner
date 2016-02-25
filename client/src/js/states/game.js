@@ -447,7 +447,6 @@ module.exports = (function() {
             }
         }
         currentRepoText.text = 'Repo: ' + levels[currentRepoIndex].owner + '/' + levels[currentRepoIndex].repository;
-        //console.log('Current Repo Index = ' + currentRepoIndex);
 
         // now check collissions
         if ( COLLIDE_ENABLED ) {
@@ -576,31 +575,6 @@ module.exports = (function() {
                 }
             }, this);
         }, this);
-/*
-        obstacles.forEach(function(obstacle) {
-            if(obstacle.worldPosition.x < -100) {
-                platforms.remove(obstacle, true);
-            } else {
-                obstacle.body.velocity.x = -speed;
-            }
-        }, this);
-
-        monsters.forEach(function(monster) {
-            if(monster.worldPosition.x < -100) {
-                platforms.remove(monster, true);
-            } else {
-                monster.body.velocity.x = -speed;
-            }
-        }, this);
-
-        nonCollisionGroup.forEach(function(o) {
-            if(o.worldPosition.x < -100) {
-                platforms.remove(o, true);
-            } else {
-                o.body.velocity.x = -speed;
-            }
-        }, this);
-*/
     }
 
     function killPlayer() {
@@ -625,8 +599,6 @@ module.exports = (function() {
                 nickname: userName,
                 score: Math.round((0-pathLength / 64) * 100) / 100
             };
-
-            //console.log('Sending score: ' + JSON.stringify(obj));
 
             rest.post('/score', {data: obj}, function (error, data) {
             });
