@@ -146,10 +146,6 @@ module.exports = (function() {
         level.size += levelOffset;
         var levelSize = 20;
         for ( levelGenerationIteration = 1; levelGenerationIteration <= levelSize; levelGenerationIteration++ ) {
-            //if (level.gaps) {
-                o.generateNextGap(levelGenerationIteration, platforms);
-            //}
-
             if(level.obstacles) {
                 o.generateNextObstacle(levelGenerationIteration, obstacles);
             }
@@ -157,6 +153,10 @@ module.exports = (function() {
             if(level.monsters) {
                 o.generateNextMonster(levelGenerationIteration, monsters);
             }
+            //if (level.gaps) {
+            o.generateNextGap(levelGenerationIteration, platforms);
+            //}
+
         }
 
         // create the avatar image
@@ -171,6 +171,13 @@ module.exports = (function() {
         player.animations.add('right', [1, 2, 3, 4], 10, true);
         player.animations.add('jump', [5, 6], 10, true);
         player.animations.add('fall', [0], 10, true);
+
+        player.shadow = this.game.add.sprite(250, 10, 'dude');
+        player.shadow.tint = 0;
+        player.shadow.alpha = 0.3;
+        player.shadow.z = player.z;
+        this.world.moveDown(player.shadow);
+
 
         // text
         gameOverLabel = this.game.add.text(this.game.world.centerX, this.game.world.centerY-200, 'Game Over', {font: 'bold 72pt arial', fill: '#F00'});
@@ -252,9 +259,14 @@ module.exports = (function() {
             drop.play();
         }
 
+        player.shadow.x = player.x - 4;
+        player.shadow.y = player.y + 4;
+        player.shadow.frame = player.frame;
+
         this.game.physics.arcade.collide(player, platforms);
         switch (state) {
             case 'waiting':
+                updateRunnerSpeedTo(0);
                 if (player.body.touching.down) {
                     state = 'running';
                     if(soundsEnabled) drop_end.play();
@@ -339,10 +351,20 @@ module.exports = (function() {
                     if(this.game.world.centerX < rnd_position) {
                         console.log('generating obstacle at position: ' + rnd_position);
 
-                        obstacle = obstacles.create(rnd_position, this.game.world.height - 64, 'tile_obstacle' + Math.floor(1 + Math.random()*4));
+                        var n =  + Math.floor(1 + Math.random()*4);
+                        obstacle = obstacles.create(rnd_position, this.game.world.height - 64, 'tile_obstacle' + n);
                         obstacle.body.setSize(obstacle.width * 0.8, obstacle.height * 0.8, obstacle.width * 0.1, obstacle.height * 0.1);
                         obstacle.anchor.set(0, 1);
                         obstacle.body.immovable = true;
+
+                        //obstacle.shadow = obstacles.create(rnd_position, this.game.world.height - 64, 'tile_obstacle' + n);
+                        //obstacle.shadow.x = obstacle.x - 6;
+                        //obstacle.shadow.y = obstacle.y - obstacle.height + 5;
+                        //obstacle.shadow.tint = 0;
+                        //obstacle.shadow.alpha = 0.6;
+                        //obstacles.moveDown(obstacle.shadow);
+
+
                         level.obstaclesCreated++;
                     }
                 }
@@ -372,10 +394,15 @@ module.exports = (function() {
                     if(this.game.world.centerX < rnd_position) {
                         console.log('generating monster at position: ' + rnd_position);
 
-                        monster = monsters.create(rnd_position, this.game.world.height - 64, 'tile_monster' + Math.floor(1 + Math.random()*4));
+                        var n = Math.floor(1 + Math.random()*4);
+                        monster = monsters.create(rnd_position, this.game.world.height - 64, 'tile_monster' + n);
                         monster.body.setSize(monster.width * 0.8, monster.height * 0.8, monster.width * 0.1, monster.height * 0.1);
                         monster.anchor.set(0, 1);
                         monster.body.immovable = true;
+                        //monster.shadow = monsters.create(rnd_position, this.game.world.height - 64, 'tile_monster' + n);
+                        //monster.shadow.tint = 0;
+                        //monster.shadow.alpha = 0.6;
+                        //monsters.moveDown(monster.shadow);
 
                         this.game.add.tween(monster).to({ y: this.game.world.height - monster.height * 2 }, 300, Phaser.Easing.Sinusoidal.Out, true, 0, -1, true)
                         level.monstersCreated++;
@@ -413,10 +440,6 @@ module.exports = (function() {
         this.lastTime = this.lastTime || this.game.time.now;
 
         if ( levelGenerationIteration < level.size ) {
-            //if (level.gaps) {
-                o.generateNextGap(levelGenerationIteration, platforms, runSpeed);
-            //}
-
             if(level.obstacles) {
                 o.generateNextObstacle(levelGenerationIteration, obstacles);
             }
@@ -424,6 +447,11 @@ module.exports = (function() {
             if(level.monsters) {
                 o.generateNextMonster(levelGenerationIteration, monsters);
             }
+
+            //if (level.gaps) {
+            o.generateNextGap(levelGenerationIteration, platforms, runSpeed);
+            //}
+
             levelGenerationIteration++;
         } else {
             if ( currentLevelIndex < levels.length-1 ) {
@@ -572,6 +600,10 @@ module.exports = (function() {
                     arr.remove(o, true);
                 } else {
                     o.body.velocity.x = -speed;
+                    if (o.shadow) {
+                        o.shadow.x = o.x - 3;
+                        o.shadow.y = o.y - o.height +3;
+                    }
                 }
             }, this);
         }, this);
@@ -584,6 +616,8 @@ module.exports = (function() {
         deathEmitter.x = player.worldPosition.x + player.width / 2;
         deathEmitter.y = player.worldPosition.y + player.height / 2;
         deathEmitter.start(true, 2000, null, 15);
+
+        player.shadow.kill();
 
         setTimeout(function() {
             userName = window.prompt('Enter your name for the leaderboard', userName);
